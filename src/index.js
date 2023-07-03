@@ -1,13 +1,20 @@
 
 const express = require('express');
-const groceriesRoute = require('./routes/groceries');
-const session = require('express-session');
-const marketRoute = require('./routes/markets');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const passport = require('passport');
+require('./strategies/local')
+
+//Routes
+const groceriesRoute = require('./routes/groceries');
+const marketRoute = require('./routes/markets');
+const authRoute = require('./routes/auth')
+
+require('./database')
 
 const app = express();
-
 const PORT = 3002;
+
 
 //ALL MIDDLEWARES ARE EXECUTED TOP TO BOTTOM IN ORDER
 //used to assign a middleware funtion between two main functionalities
@@ -18,24 +25,28 @@ app.use(express.urlencoded())
 app.use(cookieParser())
 app.use(
     session(
-    {
-    secret: `AHUSHINCEOAMKLSNJKACSICSAJNCKJ`,
-    resave: false,
-    saveUninitialized: false,
-    }
-)
-);
+        {
+            secret: `AHUSHINCEOAMKLSNJKACSICSAJNCKJ`,
+            resave: false,
+            saveUninitialized: false,
+        }
+        )
+        );
+        
+        //We can create a function(middleware) and apply it globally like this...
+        app.use((req, res, next) => {
+            //This logs a message for every single route (get, post etc.)
+            console.log(`${req.method} ${req.url}`)
+            next()
+        })
 
-//We can create a function(middleware) and apply it globally like this...
-app.use((req, res, next) => {
-    //This logs a message for every single route (get, post etc.)
-    console.log(`${req.method} ${req.url}`)
-    next()
-})
-
-// we can now prefix it with /api. Therefore localhost:3000/groceries -> localhost:3000/api/groceries
-app.use('/api/v1/groceries',groceriesRoute);
-app.use('/api/v1/markets',marketRoute);
+app.use(passport.initialize());
+app.use(passport.session());
+        
+    // we can now prefix it with /api. Therefore localhost:3000/groceries -> localhost:3000/api/groceries
+    app.use('/api/v1/groceries',groceriesRoute);
+    app.use('/api/v1/markets',marketRoute);
+    app.use('/api/v1/auth' ,authRoute);
 
 //MIDDLEWARE is a function called during life cycle of request
 /*
