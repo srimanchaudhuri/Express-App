@@ -2,8 +2,9 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const passport = require('passport');
-require('./strategies/local')
+require('./strategies/local');
 
 //Routes
 const groceriesRoute = require('./routes/groceries');
@@ -14,7 +15,7 @@ require('./database')
 
 const app = express();
 const PORT = 3002;
-
+const memoryStore = new session.MemoryStore()
 
 //ALL MIDDLEWARES ARE EXECUTED TOP TO BOTTOM IN ORDER
 //used to assign a middleware funtion between two main functionalities
@@ -29,6 +30,9 @@ app.use(
             secret: `AHUSHINCEOAMKLSNJKACSICSAJNCKJ`,
             resave: false,
             saveUninitialized: false,
+            store: MongoStore.create({
+                mongoUrl: 'mongodb://localhost:27017/expressjs-tutorial',
+            }),
         }
         )
         );
@@ -37,6 +41,11 @@ app.use(
         app.use((req, res, next) => {
             //This logs a message for every single route (get, post etc.)
             console.log(`${req.method} ${req.url}`)
+            next()
+        })
+
+        app.use((req, res, next) => {
+            console.log(memoryStore)
             next()
         })
 

@@ -5,7 +5,9 @@ const router = Router();
 //This will now check for a user is present then we can enter this app or we will get 401 - unauthorized
 //Noe this route is protected
 router.use((req, res, next) => {
-    if(req.session.user) next();
+    console.log('Inside Groceries Auth check middleware')
+    console.log(req.user)
+    if(req.user) next();
     else {
         res.send(401)
     }
